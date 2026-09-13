@@ -4,12 +4,412 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ボランコネクト - 気軽にはじめるボランティア</title>
+    
+    <!-- Open Graph for GitHub Pages sharing -->
+    <meta property="og:title" content="ボランコネクト - 気軽にはじめるボランティア">
+    <meta property="og:description" content="1時間から参加できる近所のボランティアマッチングアプリ">
+    <meta property="og:type" content="website">
+
+    <!-- SVG Favicon to avoid 404 in GitHub Pages -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤝</text></svg>">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800 min-h-screen pb-20 md:pb-6 flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('feed')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white text-xl font-black shadow-sm">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-lg leading-tight text-gray-900 tracking-tight">ボランコネクト</h1>
+                    <p class="text-[10px] text-emerald-700 font-bold tracking-wider uppercase">VolunConnect</p>
+                </div>
+            </div>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center gap-6">
+                <button id="nav-feed" onclick="switchTab('feed')" class="nav-btn text-emerald-600 border-b-2 border-emerald-600 font-semibold py-5 text-sm transition">
+                    <i class="fa-solid fa-magnifying-glass mr-1.5"></i>募集を探す
+                </button>
+                <button id="nav-map" onclick="switchTab('map')" class="nav-btn text-gray-600 font-medium hover:text-emerald-600 py-5 text-sm transition">
+                    <i class="fa-solid fa-map-location-dot mr-1.5"></i>マップで探す
+                </button>
+                <button id="nav-mypage" onclick="switchTab('mypage')" class="nav-btn text-gray-600 font-medium hover:text-emerald-600 py-5 text-sm transition">
+                    <i class="fa-solid fa-user-circle mr-1.5"></i>マイページ
+                </button>
+            </nav>
+
+            <!-- User Points & Action -->
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold text-amber-800">
+                    <i class="fa-solid fa-coins text-amber-500"></i>
+                    <span id="user-points">350</span><span class="text-[10px]">pt</span>
+                </div>
+                <button onclick="openCreateModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">募集を作成</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- TAB 1: FEED VIEW -->
+        <section id="view-feed" class="tab-view space-y-6">
+            <!-- Search & Filter Banner -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                <div class="flex flex-col md:flex-row gap-3">
+                    <div class="relative flex-grow">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input id="search-input" type="text" oninput="handleSearch()" placeholder="キーワード、地域、団体名で検索..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition">
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="category-filter" onchange="handleFilter()" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-medium">
+                            <option value="all">すべてのカテゴリ</option>
+                            <option value="環境・まちづくり">環境・まちづくり</option>
+                            <option value="動物愛護">動物愛護</option>
+                            <option value="子ども・教育">子ども・教育</option>
+                            <option value="福祉・高齢者">福祉・高齢者</option>
+                            <option value="イベントスタッフ">イベントスタッフ</option>
+                        </select>
+                        <select id="time-filter" onchange="handleFilter()" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-medium">
+                            <option value="all">すべての時間</option>
+                            <option value="quick">⚡️ 1時間サクボラ</option>
+                            <option value="today">本日開催</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Popular Tag Pills -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs custom-scrollbar">
+                    <span class="text-gray-400 text-[11px] whitespace-nowrap font-medium"><i class="fa-solid fa-hashtag mr-1"></i>おすすめ:</span>
+                    <button onclick="toggleTag('未経験OK')" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-full whitespace-nowrap transition font-medium">#未経験OK</button>
+                    <button onclick="toggleTag('手ぶらOK')" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-full whitespace-nowrap transition font-medium">#手ぶらOK</button>
+                    <button onclick="toggleTag('お一人様大歓迎')" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-full whitespace-nowrap transition font-medium">#お一人様大歓迎</button>
+                    <button onclick="toggleTag('証明書あり')" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-full whitespace-nowrap transition font-medium">#証明書あり</button>
+                </div>
+            </div>
+
+            <!-- Quick Access Hero Bar -->
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 sm:p-5 shadow-sm flex items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">スキマ時間ボランティア</span>
+                    <h2 class="font-extrabold text-base sm:text-lg">「1時間だけ」ふらっと参加できる募集をピックアップ</h2>
+                    <p class="text-xs text-emerald-100 hidden sm:block">事前準備や面倒な書類は一切不要。思い立ったらすぐ貢献！</p>
+                </div>
+                <button onclick="filterQuickEvents()" class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs px-4 py-2.5 rounded-xl whitespace-nowrap shadow transition transform active:scale-95 flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>サクボラ一覧</span>
+                </button>
+            </div>
+
+            <!-- Section Title & Count -->
+            <div class="flex items-center justify-between pt-2">
+                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
+                    <span>募集中のアクティビティ</span>
+                    <span id="result-count" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">5件</span>
+                </h3>
+            </div>
+
+            <!-- Cards Grid Container -->
+            <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- JS dynamic injection -->
+            </div>
+        </section>
+
+        <!-- TAB 2: MAP VIEW -->
+        <section id="view-map" class="tab-view hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                    <h2 class="font-bold text-gray-900 text-base">マップで近くのボランティアを探す</h2>
+                    <p class="text-xs text-gray-500">ご自宅や現在地周辺で開催される活動をピンからチェックできます</p>
+                </div>
+                <span class="text-xs bg-emerald-50 text-emerald-700 font-bold px-3 py-1 rounded-lg border border-emerald-100">
+                    📍 東京都渋谷区・新宿区周辺を表示中
+                </span>
+            </div>
+
+            <!-- Interactive Map Graphic Mockup -->
+            <div class="relative bg-slate-200 rounded-2xl overflow-hidden border border-gray-300 h-[480px] shadow-inner">
+                <!-- Mock Map Pattern Background -->
+                <div class="absolute inset-0 opacity-40 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                
+                <!-- Mock Map Roads/Parks Graphics -->
+                <div class="absolute top-1/4 left-0 w-full h-8 bg-white/70 transform -rotate-2"></div>
+                <div class="absolute top-0 left-1/3 w-12 h-full bg-white/70 transform rotate-12"></div>
+                <div class="absolute top-1/3 left-1/4 w-40 h-32 bg-emerald-200/60 rounded-3xl border border-emerald-300/50 flex items-center justify-center text-xs font-bold text-emerald-800/60">
+                    代々木公園
+                </div>
+
+                <!-- Pins Container -->
+                <div id="map-pins-container">
+                    <!-- Dynamic pins inserted via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MY PAGE VIEW -->
+        <section id="view-mypage" class="tab-view hidden space-y-6">
+            <!-- Profile Card -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row items-center gap-5">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-300 p-1 shadow">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80" alt="プロフィール" class="w-full h-full object-cover rounded-full">
+                </div>
+                <div class="space-y-1 text-center md:text-left flex-grow">
+                    <div class="flex items-center justify-center md:justify-start gap-2">
+                        <h2 class="font-bold text-lg text-gray-900">山田 花子</h2>
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">アクティブサポーター</span>
+                    </div>
+                    <p class="text-xs text-gray-500">ボランティア参加歴 3ヶ月 | 主に環境・まちづくり活動に参加</p>
+                </div>
+                <button onclick="downloadCertificate()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf text-amber-400"></i>
+                    <span>活動証明書(PDF)発行</span>
+                </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-gray-200 text-center space-y-1">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase">参加回数</p>
+                    <p id="stat-count" class="text-xl font-black text-gray-900">8 回</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-200 text-center space-y-1">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase">獲得ポイント</p>
+                    <p id="stat-pts" class="text-xl font-black text-amber-600">350 pt</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-200 text-center space-y-1">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase">貢献時間</p>
+                    <p class="text-xl font-black text-emerald-600">12.5 時間</p>
+                </div>
+            </div>
+
+            <!-- Joined Activities Section -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-emerald-600"></i>
+                    <span>参加予定のボランティア</span>
+                </h3>
+                <div id="joined-list" class="space-y-3">
+                    <!-- Dynamic joined items -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-30 flex justify-around py-2 shadow-lg">
+        <button id="mob-nav-feed" onclick="switchTab('feed')" class="flex flex-col items-center gap-1 text-emerald-600 font-bold text-[10px]">
+            <i class="fa-solid fa-magnifying-glass text-base"></i>
+            <span>探す</span>
+        </button>
+        <button id="mob-nav-map" onclick="switchTab('map')" class="flex flex-col items-center gap-1 text-gray-500 font-medium text-[10px]">
+            <i class="fa-solid fa-map-location-dot text-base"></i>
+            <span>マップ</span>
+        </button>
+        <button id="mob-nav-mypage" onclick="switchTab('mypage')" class="flex flex-col items-center gap-1 text-gray-500 font-medium text-[10px]">
+            <i class="fa-solid fa-user text-base"></i>
+            <span>マイページ</span>
+        </button>
+    </div>
+
+    <!-- MODAL 1: Detail Modal -->
+    <div id="detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl space-y-4 pb-4">
+            <!-- Modal Header Image -->
+            <div class="relative h-48 w-full bg-gray-100">
+                <img id="modal-img" src="" class="w-full h-full object-cover">
+                <button onclick="closeDetailModal()" class="absolute top-3 right-3 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/80 transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+                <div class="absolute bottom-3 left-3 flex gap-1.5">
+                    <span id="modal-category" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow"></span>
+                    <span id="modal-quick" class="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow hidden">⚡️ 短時間ボランティア</span>
+                </div>
+            </div>
+
+            <div class="px-5 space-y-4">
+                <div>
+                    <!-- Host Org Info & Ratings -->
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                        <p id="modal-org" class="font-bold text-emerald-700 flex items-center gap-1">
+                            <i class="fa-solid fa-building"></i>
+                            <span></span>
+                            <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] px-1.5 py-0.2 rounded font-semibold ml-1">本人確認済</span>
+                        </p>
+                        <div class="flex items-center gap-1 text-amber-500 font-bold">
+                            <i class="fa-solid fa-star"></i>
+                            <span id="modal-org-rating-header">4.9</span>
+                            <span id="modal-org-reviews-count-header" class="text-gray-400 font-normal text-[10px]">(0件の評価)</span>
+                        </div>
+                    </div>
+                    <h2 id="modal-title" class="text-lg font-black text-gray-900 leading-snug"></h2>
+                </div>
+
+                <!-- Basic Info Grid -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-gray-200 space-y-2 text-xs">
+                    <div class="flex items-center gap-2 text-gray-700">
+                        <i class="fa-regular fa-clock w-4 text-emerald-600"></i>
+                        <span id="modal-date" class="font-medium"></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-700">
+                        <i class="fa-solid fa-location-dot w-4 text-emerald-600"></i>
+                        <span id="modal-location" class="font-medium"></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-700">
+                        <i class="fa-solid fa-users w-4 text-emerald-600"></i>
+                        <span>参加枠: <strong id="modal-capacity" class="text-emerald-700"></strong></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-700">
+                        <i class="fa-solid fa-gift w-4 text-amber-500"></i>
+                        <span>付与ポイント: <strong id="modal-reward" class="text-amber-600 font-bold"></strong></span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-1">
+                    <h4 class="font-bold text-xs text-gray-900">活動内容</h4>
+                    <p id="modal-desc" class="text-xs text-gray-600 leading-relaxed"></p>
+                </div>
+
+                <!-- Belongings -->
+                <div class="space-y-1">
+                    <h4 class="font-bold text-xs text-gray-900">持ち物・服装</h4>
+                    <p id="modal-belongings" class="text-xs text-gray-600"></p>
+                </div>
+
+                <!-- Organizer Reviews Section -->
+                <div class="border-t border-gray-100 pt-3 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-xs text-gray-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-comments text-amber-500"></i>
+                            <span>主催者の過去の口コミ (<span id="modal-org-rating">4.9</span>★)</span>
+                        </h4>
+                        <button onclick="toggleReviewForm()" class="text-[11px] font-bold text-emerald-600 hover:underline">
+                            + 感想を書く
+                        </button>
+                    </div>
+
+                    <!-- Review Input Form (Collapsible) -->
+                    <div id="review-form" class="hidden bg-slate-50 p-3 rounded-xl border border-gray-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-gray-700">評価を選択:</span>
+                            <div class="flex gap-1 text-amber-400 text-sm" id="star-select-container">
+                                <i class="fa-solid fa-star cursor-pointer star-btn" onclick="setSelectRating(1)"></i>
+                                <i class="fa-solid fa-star cursor-pointer star-btn" onclick="setSelectRating(2)"></i>
+                                <i class="fa-solid fa-star cursor-pointer star-btn" onclick="setSelectRating(3)"></i>
+                                <i class="fa-solid fa-star cursor-pointer star-btn" onclick="setSelectRating(4)"></i>
+                                <i class="fa-solid fa-star cursor-pointer star-btn" onclick="setSelectRating(5)"></i>
+                            </div>
+                            <span id="selected-rating-val" class="text-xs font-bold text-amber-600">5.0</span>
+                        </div>
+                        <textarea id="review-input-text" rows="2" placeholder="ボランティアの雰囲気や主催者の対応について感想を記入..." class="w-full text-xs p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+                        <button onclick="submitReview()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 rounded-lg transition">
+                            口コミを送信する
+                        </button>
+                    </div>
+
+                    <!-- Reviews List -->
+                    <div id="modal-reviews-list" class="space-y-2 max-h-36 overflow-y-auto custom-scrollbar">
+                        <!-- JS inserted reviews -->
+                    </div>
+                </div>
+
+                <!-- Footer Action Buttons -->
+                <div class="pt-2 flex items-center justify-between border-t border-gray-100">
+                    <button onclick="closeDetailModal()" class="text-xs text-gray-500 font-bold px-4 py-2 hover:bg-gray-100 rounded-xl">
+                        閉じる
+                    </button>
+                    <button id="apply-btn" onclick="applyActivity()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-md transition transform active:scale-95 flex items-center gap-2 text-sm">
+                        <span>ワンタップで参加応募</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Create Activity Modal -->
+    <div id="create-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 class="font-extrabold text-base text-gray-900">新規ボランティアを募集する</h2>
+                <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleCreateSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">募集タイトル *</label>
+                    <input id="form-title" type="text" required placeholder="例: 近所の公園の掃除をお手伝いしてください" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">カテゴリ *</label>
+                    <select id="form-category" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-medium">
+                        <option value="環境・まちづくり">環境・まちづくり</option>
+                        <option value="動物愛護">動物愛護</option>
+                        <option value="子ども・教育">子ども・教育</option>
+                        <option value="福祉・高齢者">福祉・高齢者</option>
+                        <option value="イベントスタッフ">イベントスタッフ</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">日時 *</label>
+                        <input id="form-date" type="text" required placeholder="例: 明日 14:00〜15:00" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">定員 *</label>
+                        <input id="form-cap" type="number" min="1" max="50" value="5" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">開催場所 *</label>
+                    <input id="form-location" type="text" required placeholder="例: 東京都渋谷区 神南1-1" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">詳しい内容 *</label>
+                    <textarea id="form-desc" rows="3" required placeholder="作業内容や目的をわかりやすく記入してください..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30"></textarea>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">持ち物・服装</label>
+                    <input id="form-belongings" type="text" placeholder="例: 動きやすい服、飲み物" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeCreateModal()" class="px-4 py-2 font-bold text-gray-500 hover:bg-gray-100 rounded-xl">キャンセル</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl shadow transition">募集を投稿する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-16 md:bottom-6 right-6 bg-gray-900/90 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition duration-300 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">メッセージ</span>
+    </div>
+
     <script>
         const defaultActivities = [
             {
@@ -144,7 +544,6 @@
             renderJoinedList();
         };
 
-        // Render Cards with Star Ratings
         function renderFeed(items) {
             const container = document.getElementById('cards-container');
             document.getElementById('result-count').textContent = `${items.length}件`;
@@ -167,7 +566,6 @@
                 return `
                 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between">
                     <div>
-                        <!-- Image & Badges Header -->
                         <div class="relative h-40 w-full overflow-hidden bg-gray-100">
                             <img src="${act.img}" alt="${act.title}" class="w-full h-full object-cover transition transform hover:scale-105 duration-300">
                             <div class="absolute top-3 left-3 flex gap-1.5 flex-wrap">
@@ -181,7 +579,6 @@
                             </div>
                         </div>
 
-                        <!-- Content Body -->
                         <div class="p-4 space-y-2">
                             <div class="flex items-center justify-between text-xs text-gray-500">
                                 <span class="font-semibold text-emerald-700 truncate">${act.org}</span>
@@ -207,14 +604,12 @@
                                 </div>
                             </div>
 
-                            <!-- Tags -->
                             <div class="flex gap-1 flex-wrap pt-2">
                                 ${act.tags.map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] font-medium px-2 py-0.5 rounded">#${t}</span>`).join('')}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Footer Action -->
                     <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                         <div class="text-xs">
                             <span class="text-gray-400">定員:</span>
@@ -229,13 +624,12 @@
             }).join('');
         }
 
-        // Render Pins for Map View
         function renderMapPins(items) {
             const container = document.getElementById('map-pins-container');
             container.innerHTML = items.map(act => `
                 <div style="top: ${act.pinCoords.top}; left: ${act.pinCoords.left};" 
                      onclick="openDetailModal(${act.id})" 
-                     class="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
+                     class="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer z-10">
                     <div class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg border-2 border-white flex items-center gap-1 group-hover:bg-emerald-700 group-hover:scale-110 transition">
                         <i class="fa-solid fa-hand-holding-heart"></i>
                         <span class="hidden sm:inline">${act.category}</span>
@@ -244,7 +638,6 @@
             `).join('');
         }
 
-        // Render Joined Items in MyPage
         function renderJoinedList() {
             const container = document.getElementById('joined-list');
             const joinedList = activities.filter(a => joinedActivityIds.includes(a.id));
@@ -268,13 +661,8 @@
             `).join('');
         }
 
-        function handleSearch() {
-            filterData();
-        }
-
-        function handleFilter() {
-            filterData();
-        }
+        function handleSearch() { filterData(); }
+        function handleFilter() { filterData(); }
 
         let selectedTag = null;
         function toggleTag(tagName) {
@@ -317,7 +705,6 @@
             renderFeed(filtered);
         }
 
-        // Open Modal with Detailed Reviews
         function openDetailModal(id) {
             const act = activities.find(a => a.id === id);
             if (!act) return;
@@ -339,7 +726,6 @@
             document.getElementById('modal-desc').textContent = act.desc;
             document.getElementById('modal-belongings').textContent = act.belongings;
 
-            // Render Reviews List
             const reviewsContainer = document.getElementById('modal-reviews-list');
             if (act.reviews && act.reviews.length > 0) {
                 reviewsContainer.innerHTML = act.reviews.map(r => `
@@ -392,9 +778,9 @@
             const stars = document.querySelectorAll('#star-select-container .star-btn');
             stars.forEach((star, index) => {
                 if (index < val) {
-                    star.className = 'fa-solid fa-star star-btn text-amber-400';
+                    star.className = 'fa-solid fa-star star-btn cursor-pointer text-amber-400';
                 } else {
-                    star.className = 'fa-regular fa-star star-btn text-gray-300';
+                    star.className = 'fa-regular fa-star star-btn cursor-pointer text-gray-300';
                 }
             });
         }
